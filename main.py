@@ -4,20 +4,21 @@ from PySide6.QtCore import Qt
 from chessboard import Chessboard
 from controller import GameController
 
-SQUARE_SIZE = 100  # Default square size for the chessboard
+SQUARE_SIZE = 75  # Default square size for the chessboard
 
 
 class MainWindow(qtw.QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Main Window")
+        self.setWindowTitle("Ultimate Chess")
         self.setGeometry(100, 100, 800, 600)
 
         scene = qtw.QGraphicsScene(self)
-        controller = GameController(scene, SQUARE_SIZE)
-        controller.start_game()
+
 
         board = Chessboard(8, 8, SQUARE_SIZE)
+        controller = GameController(scene, board, SQUARE_SIZE)
+        controller.start_game()
         scene.addItem(board)
         view = qtw.QGraphicsView(scene, self)
         view.setRenderHint(qtg.QPainter.RenderHint.Antialiasing)
