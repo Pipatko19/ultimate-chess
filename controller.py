@@ -3,6 +3,7 @@ from PySide6.QtCore import Qt
 
 from chess_pieces import TestPiece, ChessPiece, Rook
 from chessboard import Chessboard
+from board_initializer import board_parser, BOARD
 
 class GameController(qtc.QObject):
     """
@@ -34,17 +35,22 @@ class GameController(qtc.QObject):
     def start_game(self):
         """Initialize the game state."""
         self.current_turn = "white"
-        self.board = [[None for _ in range(8)] for _ in range(8)]
+        self.board = board_parser(BOARD)
         
-        for col in range(8):
-            piece = Rook("white", self.square_size)
-            self.board[0][col] = piece
-            self.scene.addItem(piece)
-            piece.update_pos(col, 0)
-            
-            #doesn't work without the lambda for some internal pyside6 reason
-            piece.signals.pieceClicked.connect(lambda r, c: self.on_piece_clicked(r, c)) 
-            piece.signals.pieceMoved.connect(self.on_piece_released)
+        for row in range(8):
+            for col in range(8):
+                piece = self.board[row][col]
+                if piece is None:
+                    continue
+                
+                self.scene.addItem(piece)
+                piece.set_square_size(self.square_size)
+                piece.update_pos(col, row)
+                
+                #doesn't work without the lambda for some internal pyside6 reason
+                piece.signals.pieceClicked.connect(lambda r, c: self.on_piece_clicked(r, c)) 
+                piece.signals.pieceMoved.connect(self.on_piece_released)
+                
         print("Game started. White's turn.")
     
     @qtc.Slot(int, int)

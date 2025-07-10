@@ -14,6 +14,9 @@ class ChessSignals(qtc.QObject):
     pieceMoved = qtc.Signal(int, int, int, int)  # Signal emitted when a piece is moved, with old row, old col, new row, and new col as parameters
 
 class ChessPiece(qtw.QGraphicsPixmapItem, metaclass=MetaQObjectABC):
+    
+    sprite_path: str
+    
     @abstractmethod
     def get_valid_moves(self, board_state: list[list["ChessPiece | None"]]) -> set[tuple[int, int]]:
         """
@@ -23,10 +26,10 @@ class ChessPiece(qtw.QGraphicsPixmapItem, metaclass=MetaQObjectABC):
         """ 
         pass
     
-    def __init__(self, color, square_size: int, parent=None):
+    def __init__(self, color, parent=None):
         super().__init__(parent)
         self.signals = ChessSignals()
-        self.square_size = square_size 
+        self.square_size = 1 
         self.color = color
         self.row = 0
         self.col = 0
@@ -38,13 +41,15 @@ class ChessPiece(qtw.QGraphicsPixmapItem, metaclass=MetaQObjectABC):
         self.setZValue(1)
         
     
-    def _set_pixmap(self, path: str):
-        pixmap = qtg.QPixmap(path)
+    def _set_pixmap(self):
+        pixmap = qtg.QPixmap(self.sprite_path.format(color=self.color))
         new_pixmap = pixmap.scaled(self.square_size, self.square_size, Qt.AspectRatioMode.IgnoreAspectRatio)
         self.setPixmap(new_pixmap)
+        print(self.pixmap())
     
     def set_square_size(self, size: int):
         self.square_size = size
+        self._set_pixmap()
 
     def update_pos(self, col: int, row: int):
         print("UPDATING POS", col, row)
@@ -89,27 +94,68 @@ class ChessPiece(qtw.QGraphicsPixmapItem, metaclass=MetaQObjectABC):
         event.accept()
 
 class Rook(ChessPiece):
-    def __init__(self, color, square_size: int, parent=None):
-        super().__init__(color, square_size, parent)
-        self._set_pixmap(f"images/rook.png")
+    sprite_path = "images/{color}/rook.png"
 
     def get_valid_moves(self, board_state):
         # Placeholder implementation for valid moves
+        
         return {(self.col + i, self.row) for i in range(-7, 8) if i != 0 and 0 <= self.col + i < 8} | \
                {(self.col, self.row + i) for i in range(-7, 8) if i != 0 and 0 <= self.row + i < 8}
 
     def __repr__(self):
         return "R"
 
+class Knight(ChessPiece):
+    sprite_path = "images/{color}/knight.png"
+    
+    def get_valid_moves(self, board_state):
+        return {}
+    def __repr__(self):
+        return "N"
+
+class Bishop(ChessPiece):
+    sprite_path = "images/{color}/bishop.png"
+    
+    def get_valid_moves(self, board_state):
+        return {}
+    def __repr__(self):
+        return "B"
+
+class Queen(ChessPiece):
+    sprite_path = "images/{color}/queen.png"
+    
+    def get_valid_moves(self, board_state):
+        return {}
+    def __repr__(self):
+        return "Q"
+
+class King(ChessPiece):    
+    sprite_path = "images/{color}/king.png"
+    
+    def get_valid_moves(self, board_state):
+        return {}
+    def __repr__(self):
+        return "K"
+
+class Pawn(ChessPiece):
+    sprite_path = "images/{color}/pawn.png"
+    
+    def get_valid_moves(self, board_state):
+        return {}
+    def __repr__(self):
+        return "P"
+
+
 class TestPiece(ChessPiece):
-    def __init__(self, color, square_size: int, parent=None):
-        super().__init__(color, square_size, parent)
-        self._set_pixmap(f"images/pawn.png") 
+    sprite_path = "images/{color}/test.png"
+    
+    def __init__(self, color, parent=None):
+        super().__init__(color, parent)
         print(self.pixmap(), self.pixmap().size())
 
     def get_valid_moves(self, board_state):
         # Placeholder implementation for valid moves
-        return {(self.col + 1, self.row), (self.col - 1, self.row)}
+        return {(i, j) for i in range(8) for j in range(8)}
 
     def __repr__(self):
         return "T"
