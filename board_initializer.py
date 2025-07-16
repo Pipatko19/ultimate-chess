@@ -11,6 +11,17 @@ BOARD = [
     "RNBQKBNR"
 ]
 
+TEST_BOARD = [
+    "........",
+    "........",
+    "......N.",
+    "....R...",
+    "........",
+    "...R.P..",
+    "........",
+    "........",
+]
+
 def board_parser(board: list[str]) -> list[list[chess_pieces.ChessPiece | None]]:
     """
     Parses a chess board represented as a list of strings into a 2D list of ChessPiece objects.

@@ -3,7 +3,7 @@ from PySide6.QtCore import Qt
 
 from chess_pieces import TestPiece, ChessPiece, Rook
 from chessboard import Chessboard
-from board_initializer import board_parser, BOARD
+from board_initializer import board_parser, BOARD, TEST_BOARD
 
 class GameController(qtc.QObject):
     """
@@ -19,8 +19,6 @@ class GameController(qtc.QObject):
         self.current_turn = "white"  # Start with white's turn
         self.board: list[list[ChessPiece | None]] = []
         self.game_over = False
-        
-        print(self.on_piece_clicked.__class__)
 
     def switch_turn(self):
         """Switch the turn between players."""
@@ -68,13 +66,19 @@ class GameController(qtc.QObject):
         if piece is None:
             print("NON")
         
-        elif (prev_col, prev_row) not in piece.get_valid_moves(self.board):
+        elif (new_col, new_row) not in piece.get_valid_moves(self.board):
+            print("MOVES", piece.get_valid_moves(self.board))
             print("THIS IS NOT VALID MOVE", prev_col, prev_row, new_col, new_row)
             piece.update_pos(prev_col, prev_row)
         
         else:
             print("VALID MOVE, UPDATING")
             piece.update_pos(new_col, new_row)
+            
+            if (captured_piece:=self.board[new_row][new_col]) is not None:
+                print("CAPTURED PIECE", captured_piece)
+                self.scene.removeItem(captured_piece)
+            
             self.board[prev_row][prev_col] = None
             self.board[new_row][new_col] = piece
             
