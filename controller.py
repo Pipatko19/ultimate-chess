@@ -1,7 +1,7 @@
 from PySide6 import QtCore as qtc, QtWidgets as qtw, QtGui as qtg
 from PySide6.QtCore import Qt
 
-from chess_pieces import TestPiece, ChessPiece, Rook
+from chess_pieces import TestPiece, ChessPiece, King
 from chessboard import Chessboard
 from board_initializer import board_parser, BOARD, TEST_BOARD
 
@@ -42,8 +42,9 @@ class GameController(qtc.QObject):
                     continue
                 
                 self.scene.addItem(piece)
+                #piece.set_board_state(self.board)
                 piece.set_square_size(self.square_size)
-                piece.update_pos(col, row)
+                piece.update_pos(starting=True)
                 
                 #doesn't work without the lambda for some internal pyside6 reason
                 piece.signals.pieceClicked.connect(lambda r, c: self.on_piece_clicked(r, c)) 
@@ -56,8 +57,8 @@ class GameController(qtc.QObject):
         self.chessboard.highlight_square(col, row)
         piece = self.get_piece_at(col, row)
         if piece is not None:
-            for col, row in piece.get_valid_moves(self.board):
-                self.chessboard.highlight_square(col, row)
+            for move_col, move_row in piece.get_valid_moves():
+                self.chessboard.highlight_square(move_col, move_row)
     
     @qtc.Slot(int, int, int, int)
     def on_piece_released(self, prev_col: int, prev_row: int, new_col: int, new_row: int):
@@ -65,22 +66,31 @@ class GameController(qtc.QObject):
         self.chessboard.update_highlighted(new_col, new_row)
         if piece is None:
             print("NON")
+            return
+
+        valid_moves = piece.get_valid_moves()
         
-        elif (new_col, new_row) not in piece.get_valid_moves(self.board):
-            print("MOVES", piece.get_valid_moves(self.board))
+        if (new_col, new_row) not in valid_moves:
+            print("MOVES", valid_moves)
             print("THIS IS NOT VALID MOVE", prev_col, prev_row, new_col, new_row)
-            piece.update_pos(prev_col, prev_row)
+            piece.visual_update()
+            return
         
-        else:
-            print("VALID MOVE, UPDATING")
-            piece.update_pos(new_col, new_row)
-            
-            if (captured_piece:=self.board[new_row][new_col]) is not None:
-                print("CAPTURED PIECE", captured_piece)
-                self.scene.removeItem(captured_piece)
-            
-            self.board[prev_row][prev_col] = None
-            self.board[new_row][new_col] = piece
+        if isinstance(piece, King):
+            castle_move = piece.castles_valid()
+            if castle_move:
+                piece.castle(new_col)
+                return
+        
+        print("VALID MOVE, UPDATING")
+
+        if (captured_piece:=self.board[new_row][new_col]) is not None:
+            print("CAPTURED PIECE", captured_piece)
+            self.scene.removeItem(captured_piece)
+        self.board[prev_row][prev_col] = None
+        self.board[new_row][new_col] = piece
+        piece.update_pos()
+
             
         print(*(" ".join(str(piece) if piece is not None else "*" for piece in row) for row in self.board), sep="\n")
         print("\n")

@@ -52,7 +52,7 @@ def board_parser(board: list[str]) -> list[list[chess_pieces.ChessPiece | None]]
             if piece == ".":
                 parsed_row.append(None)
             else:
-                parsed_row.append(pieces[piece](color))
+                parsed_row.append(pieces[piece](color, parsed_board))
         parsed_board.append(parsed_row)
     return parsed_board
     
