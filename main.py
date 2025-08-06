@@ -1,5 +1,4 @@
 from PySide6 import QtCore as qtc, QtWidgets as qtw, QtGui as qtg
-from PySide6.QtCore import Qt
 
 from chessboard import Chessboard
 from controller import GameController

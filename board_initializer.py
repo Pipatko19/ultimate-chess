@@ -1,10 +1,11 @@
-import chess_pieces
+import piece_model
+import king
 
 BOARD = [
     "RNBQKBNR",
     "PPPPPPPP",
     "........",
-    "...T....",
+    "........",
     "........",
     "........",
     "PPPPPPPP",
@@ -21,8 +22,17 @@ TEST_BOARD = [
     "........",
     "........",
 ]
+PIECES = {
+    'R': piece_model.Rook,
+    'N': piece_model.Knight,
+    'B': piece_model.Bishop,
+    'Q': piece_model.Queen,
+    'K': king.King,
+    'P': piece_model.Pawn,
+    'T': piece_model.TestPiece
+}
 
-def board_parser(board: list[str]) -> list[list[chess_pieces.ChessPiece | None]]:
+def board_parser(board: list[str]) -> list[list[piece_model.ChessPiece | None]]:
     """
     Parses a chess board represented as a list of strings into a 2D list of ChessPiece objects.
     
@@ -32,15 +42,7 @@ def board_parser(board: list[str]) -> list[list[chess_pieces.ChessPiece | None]]
     Returns:
         list[list[chess_pieces.ChessPiece]]: A 2D list of ChessPiece objects.
     """
-    pieces = {
-        'R': chess_pieces.Rook,
-        'N': chess_pieces.Knight,
-        'B': chess_pieces.Bishop,
-        'Q': chess_pieces.Queen,
-        'K': chess_pieces.King,
-        'P': chess_pieces.Pawn,
-        'T': chess_pieces.TestPiece
-    }
+
     
     parsed_board = []
     half_point = len(board) // 2
@@ -52,7 +54,7 @@ def board_parser(board: list[str]) -> list[list[chess_pieces.ChessPiece | None]]
             if piece == ".":
                 parsed_row.append(None)
             else:
-                parsed_row.append(pieces[piece](color, parsed_board))
+                parsed_row.append(PIECES[piece](color))
         parsed_board.append(parsed_row)
     return parsed_board
     
