@@ -16,7 +16,7 @@ class Chessboard(qtw.QGraphicsItem):
         return qtc.QRectF(0, 0, self.length * self.square_size + 1, self.width * self.square_size + 1)
 
     def paint(self, painter:qtg.QPainter, option:qtw.QStyleOptionGraphicsItem, widget: qtw.QWidget | None = None):
-        colors = [qtg.QColor("white"), qtg.QColor("red")]
+        colors = [qtg.QColor("#ffd47d"), qtg.QColor("#f2ab1b")]
         
         resized_rect = lambda col, row: qtc.QRectF(col * self.square_size, row * self.square_size, self.square_size, self.square_size)
         
@@ -46,7 +46,6 @@ class Chessboard(qtw.QGraphicsItem):
         self.update()
     
     def update_highlighted(self, new_col: int, new_row: int):
-        print("UNHIGHLIGHTING")
         self.selected_squares = set()
         self.prev_square = (new_col, new_row)
         self.update()

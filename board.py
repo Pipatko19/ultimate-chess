@@ -1,7 +1,5 @@
 
-from piece_model import ChessPiece, Pawn, Rook
-from king import King
-from typing import Literal
+from piece_model import ChessPiece, Pawn, Rook, King
 
 class Board:
     def __init__(self, size: int = 8):
@@ -31,7 +29,6 @@ class Board:
     def move_piece(self, prev_col:int, prev_row:int, next_col:int, next_row:int):
         if 0 <= prev_col < self.size and 0 <= prev_row < self.size and \
            0 <= next_col < self.size and 0 <= next_row < self.size:
-            print("MOVING")
             piece = self.get_piece(prev_col, prev_row)
             self.board[next_row][next_col] = piece
             self.board[prev_row][prev_col] = None
@@ -42,7 +39,15 @@ class Board:
             return 
         raise IndexError("Invalid board coordinates")
 
-    
+    def yieled_all_pieces(self, color: str | None = None):
+        """Yield all pieces on the board."""
+        for row in range(self.size):
+            for col in range(self.size):
+                piece = self.get_piece(col, row)
+                if piece is not None:
+                    if color is None or piece.color == color:
+                        yield (col, row, piece)
+
     def __iter__(self):
         return iter(self.board)
     

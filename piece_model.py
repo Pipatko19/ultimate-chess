@@ -115,18 +115,13 @@ class Pawn(ChessPiece):
         super().__init__(color)
         self.first_move = True
     
-    def promote(self):
-        print('LOL NIC zatim')
-    
-    def chech_promote(self, row):
-        if row == 0 or row == 7:
-            self.promote()
-    
     def get_valid_moves(self, board_state: Board, this_col: int, this_row: int) -> set[tuple[int, int]]:
         valid_moves = set()
         direction = 1 if self.color == "black" else -1
         if board_state.get_piece(this_col, this_row + direction) is None:
             valid_moves.add((this_col, this_row + direction))
+            if self.first_move and board_state.get_piece(this_col,this_row + 2 * direction) is None:
+                valid_moves.add((this_col, this_row + 2 * direction))
         
         if 0 <= this_row + direction < 8 and 0 <= this_col - 1 < 8 \
             and board_state.get_piece(this_col - 1, this_row + direction) is not None:
@@ -135,14 +130,31 @@ class Pawn(ChessPiece):
             and board_state.get_piece(this_col + 1, this_row + direction) is not None:
             valid_moves.add((this_col + 1, this_row + direction)) 
         
-        if self.first_move and board_state.get_piece(this_col,this_row + 2 * direction) is None:
-            valid_moves.add((this_col, this_row + 2 * direction))
+
         
         return valid_moves
     def __repr__(self):
         return "P"
 
+class King(FirstMoveMixin, ChessPiece):    
 
+    def get_valid_moves(self, board_state: Board, this_col: int, this_row: int) -> set[tuple[int, int]]:
+        valid_moves = set()
+        moves = [
+            (1, 0), (-1, 0), (0, 1),
+            (0, -1), (1, 1), (1, -1),
+            (-1, 1), (-1, -1)]
+        for dx, dy in moves:
+            col, row = this_col + dx, this_row + dy
+            if board_state.is_on_board(col, row):
+                valid_moves.add((col, row))
+        
+        #valid_moves |= self.castles_valid()
+        
+        return valid_moves
+    def __repr__(self):
+        return "K"
+    
 class TestPiece(ChessPiece):
     sprite_path = "images/{color}/test.png"
 

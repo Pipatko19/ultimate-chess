@@ -2,7 +2,6 @@ from PySide6 import QtCore as qtc, QtWidgets as qtw, QtGui as qtg
 from PySide6.QtCore import Qt
 
 import piece_model
-import king
 
 SPRITE_PATHS = {
     piece_model.Knight: "images/{color}/knight.png",
@@ -10,9 +9,18 @@ SPRITE_PATHS = {
     piece_model.Bishop: "images/{color}/bishop.png",
     piece_model.Queen: "images/{color}/queen.png",
     piece_model.Pawn: "images/{color}/pawn.png",
-    king.King: "images/{color}/king.png",
+    piece_model.King: "images/{color}/king.png",
     piece_model.TestPiece: "images/{color}/test.png"
 }
+
+def set_pixmap(piece: piece_model.ChessPiece, square_size: int) -> qtg.QPixmap:
+    """
+    Returns a QPixmap for the given piece and square size.
+    """
+    sprite_path = SPRITE_PATHS.get(piece.__class__, "images/{color}/default.png")
+    pixmap = qtg.QPixmap(sprite_path.format(color=piece.color))
+    return pixmap.scaled(square_size, square_size, Qt.AspectRatioMode.IgnoreAspectRatio)
+
 
 class ChessSignals(qtc.QObject):
     """
@@ -25,12 +33,10 @@ class ChessSignals(qtc.QObject):
 class PieceView(qtw.QGraphicsPixmapItem):
     def __init__(self, square_size:int, piece: piece_model.ChessPiece):
         super().__init__()
-        self.piece = piece
         self.square_size = square_size
         
         self.signals = ChessSignals()
-        self.sprite_path = SPRITE_PATHS[self.piece.__class__]
-        self.color = self.piece.color
+        self.color = piece.color
         self.col = 0
         self.row = 0
         
@@ -42,12 +48,16 @@ class PieceView(qtw.QGraphicsPixmapItem):
         self.setAcceptHoverEvents(True)
         self.setAcceptedMouseButtons(Qt.MouseButton.LeftButton)
         
-        self._set_pixmap()
+        self.set_pixmap(piece, square_size)
 
-    def _set_pixmap(self):
-        pixmap = qtg.QPixmap(self.sprite_path.format(color=self.color))
-        new_pixmap = pixmap.scaled(self.square_size, self.square_size, Qt.AspectRatioMode.IgnoreAspectRatio)
-        self.setPixmap(new_pixmap)
+    def set_pixmap(self, piece: piece_model.ChessPiece, square_size: int):
+        """
+        Returns a QPixmap for the given piece and square size.
+        """
+        sprite_path = SPRITE_PATHS.get(piece.__class__, "images/{color}/test.png")
+        pixmap = qtg.QPixmap(sprite_path.format(color=piece.color))
+        scaled_pixmap = pixmap.scaled(square_size, square_size, Qt.AspectRatioMode.IgnoreAspectRatio)
+        self.setPixmap(scaled_pixmap)
     
     def reset_pos(self):
         """Return the piece back to its previous position."""

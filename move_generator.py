@@ -1,10 +1,18 @@
-from piece_model import ChessPiece, Knight, Bishop, Rook, Queen, Pawn
-from king import King
+from piece_model import ChessPiece, Knight, Bishop, Rook, Queen, Pawn, King
 from board import Board
 from typing import TypedDict
+from enum import Flag, auto
+
+class MoveType(Flag):
+    NORMAL = auto()
+    CAPTURE = auto()
+    CASTLE = auto()
+    PROMOTION = auto()
+    EN_PASSANT = auto() 
+    DOUBLE_PAWN_MOVE = auto()
 
 class Move(TypedDict):
-    type: str
+    type: MoveType
     from_col: int
     from_row: int
     to_col: int
@@ -20,7 +28,16 @@ def find_move(valid_moves, to_col, to_row):
 class MoveGenerator:
     def __init__(self, board_state: Board):
         self.board_state = board_state
-        
+        self.en_passant_position = None
+    
+    def reset_en_passant(self):
+        """Reset the en passant position."""
+        self.en_passant_position = None
+    
+    def set_en_passant(self, col: int, row: int, piece_color: str):
+        """Set the en passant position for the next move."""
+        self.en_passant_position = (col, row + (1 if piece_color == "white" else -1))
+    
     def castles_valid(self, king_col: int, king_row: int) -> set[tuple[int, int]]:
         king = self.board_state.get_piece(king_col, king_row)
         valid_castles = set()
@@ -42,7 +59,17 @@ class MoveGenerator:
                 and self.board_state.get_piece(king_col - 3, king_row) is None:
                 valid_castles.add((king_col - 2, king_row))
         return valid_castles
-        
+
+
+    def en_passant(self, col: int, row: int, color :str) -> set[tuple[int, int]]:
+        """Check if en passant is valid for the pawn at (col, row)."""
+        valid_moves = set()
+        direction = -1 if color == "white" else 1
+        if (col + 1, row + direction) == self.en_passant_position:
+            valid_moves.add((col + 1, row + direction))
+        elif (col - 1, row + direction) == self.en_passant_position:
+            valid_moves.add((col - 1, row + direction))
+        return valid_moves
         
     def find_pins(self, king_col: int, king_row: int, color: str) -> dict[tuple[int, int], frozenset[tuple[int, int]]]:
         """Finds all pieces that are pinning the king."""
@@ -149,7 +176,7 @@ class MoveGenerator:
         return (check_count, blocking_squares)
         
     def in_check(self, color: str, king_col=None, king_row=None) -> tuple[int, set[tuple[int, int]]]:
-        """Returns the number of checks on the king."""
+        """Returns the number of checks on the king and the blocking squares."""
         if king_col is None or king_row is None:
             king_col, king_row = self.board_state.find_king_position(color)
             
@@ -184,21 +211,34 @@ class MoveGenerator:
                     valid_moves = set()
         else:
             valid_moves = self._handle_king(piece.color, valid_moves)
-            valid_moves |= self.castles_valid(king_col, king_row)
-            print("VALID MOVES", valid_moves)
+            if check_count == 0:
+                valid_moves |= self.castles_valid(king_col, king_row)
+        
+        if isinstance(piece, Pawn):
+            valid_moves |= self.en_passant(col, row, piece.color)
+        
         return valid_moves
     
     def _format_moves(self, valid_moves: set[tuple[int, int]], piece: ChessPiece, col: int, row: int) -> list[Move]:
         formatted_moves: list[Move] = []
         
         for to_col, to_row in valid_moves:
-            move = Move(type="normal", from_col=col, from_row=row, to_col=0, to_row=0)
+            move = Move(type=MoveType.NORMAL, from_col=col, from_row=row, to_col=0, to_row=0)
             if isinstance(piece, King) and abs(to_col - col) == 2:
-                move['type'] = "castle"
-            elif (captured_piece := self.board_state.get_piece(to_col, to_row)) is not None:
-                if captured_piece.color == piece.color:
-                    continue
-                move['type'] = "capture"
+                move['type'] |= MoveType.CASTLE
+            elif isinstance(piece, Pawn) and abs(to_row - row) == 2:
+                move['type'] |= MoveType.DOUBLE_PAWN_MOVE
+            elif (to_col, to_row) == self.en_passant_position:
+                move['type'] |= MoveType.EN_PASSANT
+            else:
+                if isinstance(piece, Pawn) and (to_row == 0 or to_row == 7):
+                   move['type'] |= MoveType.PROMOTION
+                if (captured_piece := self.board_state.get_piece(to_col, to_row)) is not None:
+                    if captured_piece.color == piece.color:
+                        continue
+                    move['type'] |= MoveType.CAPTURE
+
+
                 
 
             move['to_col'] = to_col
@@ -219,5 +259,3 @@ class MoveGenerator:
         formatted_moves = self._format_moves(filtered_moves, piece, col, row)
         
         return formatted_moves
-
-

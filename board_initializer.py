@@ -1,5 +1,4 @@
 import piece_model
-import king
 
 BOARD = [
     "RNBQKBNR",
@@ -27,7 +26,7 @@ PIECES = {
     'N': piece_model.Knight,
     'B': piece_model.Bishop,
     'Q': piece_model.Queen,
-    'K': king.King,
+    'K': piece_model.King,
     'P': piece_model.Pawn,
     'T': piece_model.TestPiece
 }

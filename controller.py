@@ -1,11 +1,13 @@
 from PySide6 import QtCore as qtc, QtWidgets as qtw
-from PySide6.QtCore import Qt
 
 from chessboard import Chessboard
 from board_initializer import BOARD, TEST_BOARD, board_parser
 from board import Board
-from move_generator import MoveGenerator, find_move
+from piece_model import ChessPiece
+from move_generator import MoveGenerator, find_move, MoveType
 from piece_view import PieceView
+from ending_screen import EndingScreen
+from promotion_selection import PromotionSelection
 
 class GameController(qtc.QObject):
     """
@@ -23,7 +25,6 @@ class GameController(qtc.QObject):
         self.board_model = Board()
         
         self.move_generator = MoveGenerator(self.board_model)
-        self.game_over = False
         self.in_check = False
 
         self.current_turn = "white"  # Start with white's turn
@@ -32,9 +33,8 @@ class GameController(qtc.QObject):
 
     def switch_turn(self):
         """Switch the turn between players."""
-        if not self.game_over:
-            self.current_turn = "black" if self.current_turn == "white" else "white"
-            print(f"It's now {self.current_turn}'s turn.")
+        self.current_turn = "black" if self.current_turn == "white" else "white"
+        print(f"It's now {self.current_turn}'s turn.")
             
     def start_game(self, board = BOARD):
         """Initialize the game state."""
@@ -68,7 +68,7 @@ class GameController(qtc.QObject):
         self.chessboard.highlight_square(col, row)
         piece = self.board_model.get_piece(col, row)
         
-        if piece is None:
+        if piece is None or piece.color != self.current_turn:
             return
         
         self._valid_moves = self.move_generator.generate_moves(piece, col, row)
@@ -91,27 +91,57 @@ class GameController(qtc.QObject):
             self.board_view[(from_col, from_row)].reset_pos()
             return
         
+        move_type = move["type"]
 
+        print("MOVE", move)
 
         
-        self.handle_move(from_col, from_row, to_col, to_row)
-        match move["type"]:
-            case "capture":
-                self.scene.removeItem(self.board_view[(to_col, to_row)])
-            case "castle":
-                rook_start_col = 0 if from_col > to_col else 7
-                rook_end_col = 3 if from_col > to_col else 5
-                self.handle_move(rook_start_col, from_row, rook_end_col, from_row)
-            
-        print("CHECK?:", self.move_generator.in_check("black"))
+        if MoveType.CAPTURE & move_type: 
+            self.scene.removeItem(self.board_view[(to_col, to_row)])
+        if MoveType.NORMAL & move_type:
+            self.handle_move(from_col, from_row, to_col, to_row)
+        if MoveType.CASTLE & move_type:
+            rook_start_col = 0 if from_col > to_col else 7
+            rook_end_col = 3 if from_col > to_col else 5
+            self.handle_move(rook_start_col, from_row, rook_end_col, from_row)
+        if MoveType.PROMOTION & move_type:
+            dialog = PromotionSelection(piece.color, parent=self.scene.views()[0])
+            if dialog.exec() == qtw.QDialog.DialogCode.Accepted and dialog.selected_piece:
+                self.promote_pawn(to_col, to_row, dialog.selected_piece)
+        if MoveType.DOUBLE_PAWN_MOVE & move_type:
+            self.move_generator.set_en_passant(to_col, to_row, piece.color)
+        else:
+            self.move_generator.reset_en_passant()
+        if MoveType.EN_PASSANT & move_type:
+            removed_row = to_row + (1 if piece.color == "white" else -1)
+            self.scene.removeItem(self.board_view[to_col, removed_row])
+            self.board_model.board[removed_row][to_col] = None
+        
         
         self._valid_moves.clear()
-        # self.handle_check()
         
+        winner = None
+        if self.is_checkmate("white"):
+            winner = "Black"
+        elif self.is_checkmate("black"):
+            winner = "White"
+        if winner:
+            print(f"{winner} wins!")
+            ending_screen = EndingScreen(winner, parent=self.scene.views()[0])
+            if ending_screen.exec():
+                self.start_game(TEST_BOARD)
 
-            
         print(self.board_model)
+
+        self.switch_turn()
     
+    def promote_pawn(self, col: int, row: int, piece: ChessPiece):
+        """promote a pawn to a new piece type."""
+        self.board_view[(col, row)].set_pixmap(piece, self.square_size)
+        self.board_model.place_piece(piece, col, row)
+        
+        
+        
     def handle_move(self, from_col, from_row, to_col, to_row):
 
         self.board_model.move_piece(from_col, from_row, to_col, to_row)
@@ -121,3 +151,21 @@ class GameController(qtc.QObject):
 
         # 3. Update the controller's view map to reflect the new position
         self.board_view[(to_col, to_row)] = self.board_view.pop((from_col, from_row))
+
+    def is_checkmate(self, color: str) -> bool:
+        """Check if the current player is in checkmate."""
+        king_col, king_row = self.board_model.find_king_position(color)
+        total_checks, blocking_squares = self.move_generator.in_check(color, king_col, king_row)
+        
+        if total_checks == 0:
+            return False
+        
+        king = self.board_model.get_piece(king_col, king_row)
+        if any(self.move_generator.generate_moves(king, king_col, king_row)): #type: ignore
+            return False
+        if total_checks == 1:
+            for col, row, piece in self.board_model.yieled_all_pieces(color):
+                valid_moves = self.move_generator.generate_moves(piece, col, row)
+                if any((move["to_col"], move["to_row"]) in blocking_squares for move in valid_moves):
+                    return False
+        return True
