@@ -1,5 +1,5 @@
-from piece_model import ChessPiece, Knight, Bishop, Rook, Queen, Pawn, King
-from board import Board
+from chess.piece_model import ChessPiece, Knight, Bishop, Rook, Queen, Pawn, King
+from chess.board_model import Board
 from typing import TypedDict
 from enum import Flag, auto
 
@@ -10,15 +10,20 @@ class MoveType(Flag):
     PROMOTION = auto()
     EN_PASSANT = auto() 
     DOUBLE_PAWN_MOVE = auto()
+    CHECK = auto()
+    CHECKMATE = auto()
+    STALEMATE = auto()
 
 class Move(TypedDict):
     type: MoveType
+    piece: ChessPiece
     from_col: int
     from_row: int
     to_col: int
     to_row: int
+    promotion_piece: ChessPiece | None
     
-def find_move(valid_moves, to_col, to_row):
+def find_move(valid_moves: list[Move], to_col: int, to_row: int):
     """Helper function to find the move object in valid moves."""
     for move in valid_moves:
         if move["to_col"] == to_col and move["to_row"] == to_row:
@@ -190,6 +195,7 @@ class MoveGenerator:
         total_checks = sum(check_count)
         total_blocking_squares = set().union(*blocking_squares)
 
+        print("CHECK OWO", total_checks, total_blocking_squares)
         return total_checks, total_blocking_squares
     
     def _filter_moves(self, piece: ChessPiece, col: int, row: int) -> set[tuple[int, int]]:
@@ -223,7 +229,7 @@ class MoveGenerator:
         formatted_moves: list[Move] = []
         
         for to_col, to_row in valid_moves:
-            move = Move(type=MoveType.NORMAL, from_col=col, from_row=row, to_col=0, to_row=0)
+            move = Move(type=MoveType.NORMAL, piece=piece, from_col=col, from_row=row, to_col=0, to_row=0, promotion_piece=None)
             if isinstance(piece, King) and abs(to_col - col) == 2:
                 move['type'] |= MoveType.CASTLE
             elif isinstance(piece, Pawn) and abs(to_row - row) == 2:

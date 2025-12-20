@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 from abc import abstractmethod, ABC
 
 if TYPE_CHECKING:
-    from board import Board
+    from chess.board_model import Board
 
 class FirstMoveMixin:
     """

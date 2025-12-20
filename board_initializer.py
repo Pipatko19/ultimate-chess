@@ -1,4 +1,4 @@
-import piece_model
+import chess.piece_model as piece_model
 
 BOARD = [
     "RNBQKBNR",

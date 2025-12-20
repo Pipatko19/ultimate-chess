@@ -1,7 +1,7 @@
 from PySide6 import QtCore as qtc, QtWidgets as qtw, QtGui as qtg
 from PySide6.QtCore import Qt
 
-import piece_model
+import chess.piece_model as piece_model
 
 SPRITE_PATHS = {
     piece_model.Knight: "images/{color}/knight.png",
@@ -12,15 +12,6 @@ SPRITE_PATHS = {
     piece_model.King: "images/{color}/king.png",
     piece_model.TestPiece: "images/{color}/test.png"
 }
-
-def set_pixmap(piece: piece_model.ChessPiece, square_size: int) -> qtg.QPixmap:
-    """
-    Returns a QPixmap for the given piece and square size.
-    """
-    sprite_path = SPRITE_PATHS.get(piece.__class__, "images/{color}/default.png")
-    pixmap = qtg.QPixmap(sprite_path.format(color=piece.color))
-    return pixmap.scaled(square_size, square_size, Qt.AspectRatioMode.IgnoreAspectRatio)
-
 
 class ChessSignals(qtc.QObject):
     """

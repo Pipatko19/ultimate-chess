@@ -1,7 +1,7 @@
 from PySide6 import QtCore as qtc, QtWidgets as qtw, QtGui as qtg
 from PySide6.QtCore import Qt
-from piece_view import SPRITE_PATHS
-import piece_model
+from chess.piece_view import SPRITE_PATHS
+import chess.piece_model as piece_model
 
 class PromotionSelection(qtw.QDialog):
     """

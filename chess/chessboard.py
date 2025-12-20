@@ -45,10 +45,12 @@ class Chessboard(qtw.QGraphicsItem):
         self.selected_squares.add((col, row))
         self.update()
     
-    def update_highlighted(self, new_col: int, new_row: int):
+    def reset_highlight(self, new_col: int, new_row: int):
         self.selected_squares = set()
         self.prev_square = (new_col, new_row)
         self.update()
+        
+        
 
 
 

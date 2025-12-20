@@ -6,9 +6,10 @@ class EndingScreen(qtw.QDialog):
     """
     
     result_messages = {
-        "White": ("You Win!", "Congratulations 🎉", "#00ff00"),
-        "Black": ("You Lose", "Uh oh.", "#ff0000"),
-        "Stalemate": ("Stalemate", "It's a draw.", "#0000ff")}
+        "white": ("You Win!", "Congratulations 🎉", "#00ff00"),
+        "black": ("You Lose", "Uh oh.", "#ff0000"),
+        "stalemate": ("Stalemate", "It's a draw.", "#0000ff"),
+        "time out": ("Time's Up!", "That is bad.", "#ffa500"),}
     X_offset = 10
     Y_offset = 50
     
@@ -34,23 +35,6 @@ class EndingScreen(qtw.QDialog):
         subtitle_lbl.setAlignment(qtc.Qt.AlignmentFlag.AlignCenter)
         subtitle_lbl.setStyleSheet(f"font-size: 18px;")
         layout.addWidget(subtitle_lbl)
-        
-        # btn_layout = qtw.QHBoxLayout()
-        # layout.addLayout(btn_layout)
-        
-        # # Restart button
-        # restart_button = qtw.QPushButton("Restart Game", self)
-        # restart_button.clicked.connect(self.restart_game)
-        # btn_layout.addWidget(restart_button)
-        
-        # # Exit button
-        # exit_button = qtw.QPushButton("Exit", self)
-        # exit_button.clicked.connect(self.close)
-        # btn_layout.addWidget(exit_button)
-
-    def restart_game(self):
-        """Signal to restart the game."""
-        self.accept()  # Close the dialog and signal that the game should be restarted
     
     def paintEvent(self, event: qtg.QPaintEvent):
         painter = qtg.QPainter(self)

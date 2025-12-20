@@ -1,0 +1,31 @@
+/* General styles for the entire application */
+QMainWindow {
+    background-color: #333333; /* Dark background */
+}
+
+/* Style for the TimeDisplay widget */
+TimeDisplay QLabel{
+    font-family: "Courier New", monospace;
+    font-size: 24px;
+    color: #ff0000; /* Light text color */
+    border: 2px solid #555555;
+    border-radius: 5px;
+    padding: 5px 10px;
+}
+
+/* Style for the QTableView (HistoryDisplay) */
+HistoryDisplay QTableView {
+    background-color: #444444;
+    gridline-color: #666666;
+}
+
+/* Style for individual items (cells) in the QTableView */
+HistoryDisplay QTableView::item {
+    color: #dddddd;
+    padding: 4px; /* Padding for cell content */
+}
+
+/* Style for alternating rows */
+HistoryDisplay QTableView::item:alternate {
+    background-color: #555555;
+}

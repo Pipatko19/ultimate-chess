@@ -1,5 +1,5 @@
 
-from piece_model import ChessPiece, Pawn, Rook, King
+from chess.piece_model import ChessPiece, Pawn, Rook, King
 
 class Board:
     def __init__(self, size: int = 8):
@@ -26,6 +26,12 @@ class Board:
             return self.board[row][col]
         return None
     
+    def remove_piece(self, col: int, row: int):
+        if self.is_on_board(col, row):
+            self.board[row][col] = None
+            return
+        raise IndexError("Invalid board coordinates")
+    
     def move_piece(self, prev_col:int, prev_row:int, next_col:int, next_row:int):
         if 0 <= prev_col < self.size and 0 <= prev_row < self.size and \
            0 <= next_col < self.size and 0 <= next_row < self.size:
@@ -39,8 +45,8 @@ class Board:
             return 
         raise IndexError("Invalid board coordinates")
 
-    def yieled_all_pieces(self, color: str | None = None):
-        """Yield all pieces on the board."""
+    def yield_all_pieces(self, color: str | None = None):
+        """Yield all pieces of the color on the board."""
         for row in range(self.size):
             for col in range(self.size):
                 piece = self.get_piece(col, row)
