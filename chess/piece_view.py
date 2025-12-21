@@ -4,13 +4,13 @@ from PySide6.QtCore import Qt
 import chess.piece_model as piece_model
 
 SPRITE_PATHS = {
-    piece_model.Knight: "images/{color}/knight.png",
-    piece_model.Rook: "images/{color}/rook.png",
-    piece_model.Bishop: "images/{color}/bishop.png",
-    piece_model.Queen: "images/{color}/queen.png",
-    piece_model.Pawn: "images/{color}/pawn.png",
-    piece_model.King: "images/{color}/king.png",
-    piece_model.TestPiece: "images/{color}/test.png"
+    piece_model.Knight: "data/{color}/knight.png",
+    piece_model.Rook: "data/{color}/rook.png",
+    piece_model.Bishop: "data/{color}/bishop.png",
+    piece_model.Queen: "data/{color}/queen.png",
+    piece_model.Pawn: "data/{color}/pawn.png",
+    piece_model.King: "data/{color}/king.png",
+    piece_model.TestPiece: "data/{color}/test.png"
 }
 
 class ChessSignals(qtc.QObject):
@@ -45,7 +45,7 @@ class PieceView(qtw.QGraphicsPixmapItem):
         """
         Returns a QPixmap for the given piece and square size.
         """
-        sprite_path = SPRITE_PATHS.get(piece.__class__, "images/{color}/test.png")
+        sprite_path = SPRITE_PATHS.get(piece.__class__, "data/{color}/test.png")
         pixmap = qtg.QPixmap(sprite_path.format(color=piece.color))
         scaled_pixmap = pixmap.scaled(square_size, square_size, Qt.AspectRatioMode.IgnoreAspectRatio)
         self.setPixmap(scaled_pixmap)

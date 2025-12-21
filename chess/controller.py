@@ -1,13 +1,16 @@
 from PySide6 import QtCore as qtc, QtWidgets as qtw
 
-from chess.chessboard import Chessboard
 from board_initializer import BOARD
+
+from chess.chessboard import Chessboard
 from chess.move_generator import Move
 from chess.piece_model import ChessPiece
 from chess.piece_view import PieceView
 from chess.GameState import GameState, MoveEffect
+
 from features.ending_screen import EndingScreen
 from features.promotion_selection import PromotionSelection
+from features.audio_master import AudioMaster
 
 class GameController(qtc.QObject):
     """
@@ -33,13 +36,17 @@ class GameController(qtc.QObject):
         #self.current_turn = "white"  # Start with white's turn
         #self._valid_moves = list()
         
+        self.audio_master = AudioMaster()
+        
         self.remaining_time = qtc.QTimer(self)
         self.remaining_time.setInterval(1000)
         self.remaining_time.timeout.connect(self.pass_time)
         self.remaining_time.start()
         
+        
     def pass_time(self):
         self.second_passed.emit()
+        self.audio_master.play_tick_effect()
     
     def send_move_data(self, move: Move):
         self.moved.emit(move, self.game_state.current_turn)
@@ -78,6 +85,9 @@ class GameController(qtc.QObject):
     @qtc.Slot(int, int, int, int)
     def on_piece_released(self, from_col: int, from_row: int, to_col: int, to_row: int):
         self.chessboard.reset_highlight(to_col, to_row)
+
+        
+        
         move_container = self.game_state.evaluate_move(from_col, from_row, to_col, to_row)
 
         if move_container is None:
@@ -87,7 +97,7 @@ class GameController(qtc.QObject):
         
         move, move_effect = move_container
         
-
+        self.audio_master.play_place_effect()
         self.send_move_data(move)
         self._update_turn(move_effect)
 
@@ -100,14 +110,19 @@ class GameController(qtc.QObject):
         for from_pos, to_pos in move_effect.moved:
             self.handle_move_visual(*from_pos, *to_pos)
             if move_effect.promotion:
+                self.audio_master.play_promotion_effect()
+                
                 dialog = PromotionSelection(move_effect.promotion, parent=self.scene.views()[0])
                 if dialog.exec() == qtw.QDialog.DialogCode.Accepted and dialog.selected_piece:
                     self.promote_pawn(*to_pos, dialog.selected_piece)
         if move_effect.checkmate:
+            self.audio_master.play_fanfare_effect()
+            self.remaining_time.stop()
+            
             winner = self.game_state.current_turn
             self.end(winner)
             print(f"{winner} wins!")
-            self.remaining_time.stop()
+
         elif move_effect.stalemate:
             self.end("stalemate")
             print("Stalemate!")
@@ -128,6 +143,8 @@ class GameController(qtc.QObject):
         """promote a pawn to a new piece type. Will fix it later"""
         self.board_view[(col, row)].set_pixmap(piece, self.square_size)
         self.game_state.on_promotion(piece, col, row)
+        
+
 
     def end(self, winner: str):
         ending_screen = EndingScreen(winner, parent=self.scene.views()[0])
