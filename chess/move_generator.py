@@ -1,27 +1,9 @@
 from chess.piece_model import ChessPiece, Knight, Bishop, Rook, Queen, Pawn, King
 from chess.board_model import Board
-from typing import TypedDict
-from enum import Flag, auto
 
-class MoveType(Flag):
-    NORMAL = auto()
-    CAPTURE = auto()
-    CASTLE = auto()
-    PROMOTION = auto()
-    EN_PASSANT = auto() 
-    DOUBLE_PAWN_MOVE = auto()
-    CHECK = auto()
-    CHECKMATE = auto()
-    STALEMATE = auto()
+from chess.MoveTypes import Move, MoveType
 
-class Move(TypedDict):
-    type: MoveType
-    piece: ChessPiece
-    from_col: int
-    from_row: int
-    to_col: int
-    to_row: int
-    promotion_piece: ChessPiece | None
+
     
 def find_move(valid_moves: list[Move], to_col: int, to_row: int):
     """Helper function to find the move object in valid moves."""
@@ -66,7 +48,7 @@ class MoveGenerator:
         return valid_castles
 
 
-    def en_passant(self, col: int, row: int, color :str) -> set[tuple[int, int]]:
+    def en_passant(self, col: int, row: int, color:str) -> set[tuple[int, int]]:
         """Check if en passant is valid for the pawn at (col, row)."""
         valid_moves = set()
         direction = -1 if color == "white" else 1
@@ -145,7 +127,7 @@ class MoveGenerator:
             
             while self.board_state.is_on_board(col, row):
                 piece = self.board_state.get_piece(col, row)
-                if piece is None:
+                if piece is None or isinstance(piece, King):
                     col += dx
                     row += dy
                     potential_blocking.add((col, row))

@@ -1,6 +1,5 @@
 from PySide6 import QtCore as qtc, QtWidgets as qtw, QtGui as qtg
 
-from chess.chessboard import Chessboard
 from chess.controller import GameController
 
 from features.time import TimeDisplay
@@ -18,10 +17,8 @@ class MainWindow(qtw.QMainWindow):
         main_layout = qtw.QGridLayout(self)
         
         scene = qtw.QGraphicsScene(self)
-        board = Chessboard(8, 8, SQUARE_SIZE)
-        controller = GameController(scene, board, SQUARE_SIZE)
+        controller = GameController(scene, SQUARE_SIZE)
         controller.start_game()
-        scene.addItem(board)
         
         view = qtw.QGraphicsView(scene, self)
         view.setRenderHint(qtg.QPainter.RenderHint.Antialiasing)
@@ -45,9 +42,12 @@ class MainWindow(qtw.QMainWindow):
         
         main_layout.setRowStretch(1, 1)
         main_layout.setColumnStretch(0, 1)
-        main_layout.setColumnStretch(1, 1)        
+        main_layout.setColumnStretch(1, 1)
         central.setLayout(main_layout)
         self.setCentralWidget(central)
+        
+
+        
 
 
 if __name__ == "__main__":

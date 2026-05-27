@@ -1,5 +1,5 @@
 from PySide6 import QtCore as qtc, QtWidgets as qtw, QtGui as qtg
-from chess.move_generator import Move, MoveType
+from chess.MoveTypes import Move, MoveType
 
 class HistoryDisplay(qtw.QWidget):
     def __init__(self, parent=None):
@@ -8,31 +8,32 @@ class HistoryDisplay(qtw.QWidget):
         
         self.view = qtw.QTableView(parent=self)
         self.view.setHorizontalScrollBarPolicy(qtc.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        
-        header = self.view.horizontalHeader()
-        header.setSectionResizeMode(qtw.QHeaderView.ResizeMode.Stretch)
-        
-        
+
         self.model = qtg.QStandardItemModel(0, 3, self)
         self.model.setHorizontalHeaderLabels(["#", "White", "Black"])
+        self.view.setModel(self.model)
         
+        header = self.view.horizontalHeader()
+
+        header.setSectionResizeMode(0, qtw.QHeaderView.ResizeMode.Fixed)
+        header.setSectionResizeMode(1, qtw.QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(2, qtw.QHeaderView.ResizeMode.Stretch)
+        
+        fm = self.view.fontMetrics()
+        width = fm.horizontalAdvance("mmm")
+        header.resizeSection(0, width)
+
         self.view.setEditTriggers(qtw.QAbstractItemView.EditTrigger.NoEditTriggers)
         self.view.setSelectionMode(qtw.QAbstractItemView.SelectionMode.NoSelection)
         self.view.setFocusPolicy(qtc.Qt.FocusPolicy.NoFocus)
         self.view.setShowGrid(False)
         self.view.verticalHeader().setVisible(False)
         self.view.setAlternatingRowColors(True)
-        self.view.setModel(self.model)
-        
+
         self.view.setSizePolicy(qtw.QSizePolicy.Policy.Expanding, qtw.QSizePolicy.Policy.Expanding)
         
-        self.view.resizeColumnsToContents()
-        
-        fm = self.view.fontMetrics()
-        min_width = fm.horizontalAdvance("abcdef")
-        header.setMinimumSectionSize(min_width + 20)
-        
         layout = qtw.QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.view)
     
     def _format_move(self, move: Move) -> str:

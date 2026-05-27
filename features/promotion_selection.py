@@ -44,7 +44,6 @@ class PromotionSelection(qtw.QDialog):
             layout.addWidget(button)
             self.piece_buttons[piece] = button
         
-        self.selected_piece = None
 
     def select_piece(self, piece: piece_model.ChessPiece) -> None:
         """Set the selected piece and close the dialog."""
